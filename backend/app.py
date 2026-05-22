@@ -8,6 +8,7 @@ from email.message import EmailMessage
 from hashlib import sha256
 from pathlib import Path
 
+import requests
 from flask import Flask, jsonify, redirect, request, send_from_directory, session, url_for
 from flask_cors import CORS
 from flask_dance.contrib.google import google, make_google_blueprint
@@ -225,6 +226,32 @@ def _hash_otp(email: str, otp: str) -> str:
 
 
 def _send_registration_otp(email: str, otp: str, name: str) -> None:
+    resend_api_key = os.getenv('RESEND_API_KEY')
+    if resend_api_key:
+        smtp_from = os.getenv('SMTP_FROM', 'Learnify <onboarding@resend.dev>')
+        response = requests.post(
+            'https://api.resend.com/emails',
+            headers={
+                'Authorization': f'Bearer {resend_api_key}',
+                'Content-Type': 'application/json',
+            },
+            json={
+                'from': smtp_from,
+                'to': [email],
+                'subject': 'Your Learnify verification code',
+                'text': (
+                    f"Hi {name},\n\n"
+                    f"Your Learnify verification code is: {otp}\n\n"
+                    f"This code expires in {OTP_EXPIRY_MINUTES} minutes.\n"
+                    "If you did not request this, you can ignore this email.\n"
+                ),
+            },
+            timeout=20,
+        )
+        if not response.ok:
+            raise RuntimeError(f"Email OTP failed: {response.text}")
+        return
+
     smtp_host = os.getenv('SMTP_HOST')
     smtp_port = int(os.getenv('SMTP_PORT', '587'))
     smtp_user = os.getenv('SMTP_USER')

@@ -1,0 +1,69 @@
+{
+  "total_courses": 2,
+  "courses": [
+    {
+      "name": "",
+      "code": "",
+      "credits": "3",
+      "prerequisites": "DS (CSC-201)",
+      "topics": [
+        "Week 1: Introduction; Briefing on CLO’s Role of algorithms in computing Analysis on nature of input and size...",
+        "Week 2: Sorting Algorithm analysis, Insertion Sort Loop Invariant & Correctness Bubble Sort Sorting Algorith...",
+        "Week 3: Asymptotic notations; Big-O: Upper Bound Big Ω: Lower Bound Assignment-1 Asymptotic notations; Big-O...",
+        "Week 4: Asymptotic notations; Big Θ: Upper and Lower Bound, little-o, little-ω, Asymptotic notations; Big Θ:...",
+        "Week 5: Recursion and recurrence relations; Quiz-1 Recursion and recurrence relations; Quiz-1...",
+        "Week 6: Algorithm Design Techniques, Brute Force Approach, Algorithm Design Techniques, Brute Force Approach...",
+        "Week 7: Divide-and-conquer approach; Divide-and-conquer approach;...",
+        "Week 8: Merge Sort, Quick Sort, Quiz-2 Merge Sort, Quick Sort, Quiz-2 Midterm Exam Midterm Exam Midterm Exam...",
+        "Week 9: Greedy approach; Greedy approach;...",
+        "Week 10: Dynamic programming; Elements of Dynamic Programming, Assignment-2 Dynamic programming; Elements of ...",
+        "Week 11: Search trees; Quiz-3 Search trees; Quiz-3...",
+        "Week 12: Heaps; Hashing; Heaps; Hashing;...",
+        "Week 13: Graph algorithms, Shortest paths, Sparse graphs, Graph algorithms, Shortest paths, Sparse graphs,...",
+        "Week 14: String matching; String matching;...",
+        "Week 15: Introduction to complexity classes. Quiz-4 Introduction to complexity classes. Quiz-4...",
+        "Week 16: Course Revision and Discussion on Past Papers Course Revision and Discussion on Past Papers Final Te..."
+      ]
+    },
+    {
+      "name": "MGT-351 Introduction to Marketing",
+      "code": "MGT-351",
+      "credits": "3(3-0)",
+      "prerequisites": "None",
+      "topics": [
+        "Week 1: Marketing in a changing World: Creating Customer Value and Satisfaction. What is Marketing, Marketin...",
+        "Week 1: I Marketing Management Philosophies, Customer Value and Satisfaction...",
+        "Week 2: Designing a Customer-Driven Marketing Strategy, Marketing Management Orientations, Preparing an Inte...",
+        "Week 2: I Marketing Challenges in the New “Connected” Millennium. Capturing Value from Customers, The Changi...",
+        "Week 3: Company and Marketing Strategy: Partnering to Build Customer Relationships Company-Wide Strategic Pl...",
+        "Week 3: I Marketing Strategy and the Marketing Mix...",
+        "Week 4: Marketing Analysis, Marketing Planning, Marketing, Implementation...",
+        "Week 4: I Marketing Department Organization, Marketing Control...",
+        "Week 5: Analyzing the Marketing Environment The Microenvironment...",
+        "Week 5: I The Macro environment ,The Demographic, Economic, Natural Environment...",
+        "Week 6: Responding to the Marketing Environment...",
+        "Week 6: I Consumer Markets and Consumer Buyer Behavior Model of Consumer Behavior, Characteristics Affecting...",
+        "Week 7: Types of Buying Decision Behavior...",
+        "Week 7: I The Buyer Decision Process...",
+        "Week 8: Customer-Driven Marketing Strategy: Creating Value for Target Customers Market Segmentation, Require...",
+        "Week 8: I Market Targeting, Differentiation and Positioning Mid Term Exam Mid Term Exam Mid Term Exam...",
+        "Week 9: Product & Services Strategy What is Product, Product Classifications, Individual Product Decisions...",
+        "Week 9: I Product line decisions, Product mix –decisions....",
+        "Week 10: Marketing strategies for Service Firms...",
+        "Week 10: I Branding Strategy: Building Strong Brands, Brand Equity...",
+        "Week 11: New-Product Development and Product Life Cycle strategies New Product development...",
+        "Week 11: I Managing New-Product Development; Customer-Centered New-...",
+        "Week 12: Product Development, Product life cycle strategies. Marketing Strategies at every product life cycle...",
+        "Week 12: I New-Product Pricing Strategies Market-Skimming Pricing, Market-Penetration Pricing, Product Mix Pr...",
+        "Week 13: Marketing Channels Definition, number of channel level, conventional and vertical marketing channel ...",
+        "Week 13: I Promotion IMC, promotion mix, Advertising...",
+        "Week 14: Sales promotion, personal selling, Public relations, Publicity...",
+        "Week 14: I Introduction to e-business Introduction, Different trends...",
+        "Week 15: Rules of doing e-business, E-business application in the market...",
+        "Week 15: I Digital Marketing Definition, using analytics to interpret and optimize results to maximize perfor...",
+        "Week 16: Project presentation...",
+        "Week 16: I Project presentation Final Term Exam Final Term Exam Final Term Exam Course Learning Outcomes (CLO..."
+      ]
+    }
+  ]
+}

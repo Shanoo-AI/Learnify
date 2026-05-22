@@ -1,0 +1,206 @@
+/* ── Layout ── */
+.home-actions {
+  display: grid;
+  gap: 18px;
+}
+
+.home-grid {
+  display: grid;
+  gap: 14px;
+}
+
+.home-actions .cards-5 {
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.home-actions .action-card {
+  min-height: 220px;
+  align-content: space-between;
+  cursor: pointer;
+  transition: border-color 0.25s, transform 0.25s;
+  position: relative;
+  overflow: hidden;
+  animation: cardFadeUp 0.4s ease both;
+}
+.home-actions .action-card:hover {
+  border-color: #e5382b;
+  transform: translateY(-3px);
+}
+.home-actions .action-card:nth-child(1) { animation-delay: 0.04s; }
+.home-actions .action-card:nth-child(2) { animation-delay: 0.10s; }
+.home-actions .action-card:nth-child(3) { animation-delay: 0.16s; }
+.home-actions .action-card:nth-child(4) { animation-delay: 0.22s; }
+.home-actions .action-card:nth-child(5) { animation-delay: 0.28s; }
+
+@keyframes cardFadeUp {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Welcome card top accent ── */
+.welcome-card {
+  position: relative;
+  overflow: hidden;
+}
+.welcome-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #e5382b, #ba7517, #1d9e75, #378add);
+}
+
+/* ── Icon badges ── */
+.action-card-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 12px;
+  transition: background 0.2s;
+}
+.action-card-icon svg {
+  width: 20px;
+  height: 20px;
+  transition: transform 0.25s;
+}
+.action-card:hover .action-card-icon svg {
+  transform: scale(1.15) rotate(-5deg);
+}
+
+.i-audio { background: rgba(229, 56, 43, 0.12); }
+.i-audio svg { stroke: #e5382b; }
+.i-video { background: rgba(29, 158, 117, 0.12); }
+.i-video svg { stroke: #1d9e75; }
+.i-lib   { background: rgba(186, 117, 23, 0.12); }
+.i-lib   svg { stroke: #ba7517; }
+.i-bot   { background: rgba(55, 138, 221, 0.12); }
+.i-bot   svg { stroke: #378add; }
+.i-quiz  { background: rgba(255, 61, 61, 0.12); }
+.i-quiz  svg { stroke: #ff6b6b; }
+
+.action-card:hover .i-audio { background: rgba(229, 56, 43, 0.22); }
+.action-card:hover .i-video { background: rgba(29, 158, 117, 0.22); }
+.action-card:hover .i-lib   { background: rgba(186, 117, 23, 0.22); }
+.action-card:hover .i-bot   { background: rgba(55, 138, 221, 0.22); }
+.action-card:hover .i-quiz  { background: rgba(255, 61, 61, 0.22); }
+
+.quiz-mini {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 10px 0;
+}
+.quiz-mini span {
+  border: 1px solid #3a3a3a;
+  border-radius: 999px;
+  color: #ffb7b7;
+  background: rgba(255, 61, 61, 0.08);
+  padding: 4px 8px;
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+/* ── Wave animation (Audio card) ── */
+.wave-wrap {
+  display: flex;
+  align-items: flex-end;
+  gap: 3px;
+  height: 36px;
+  margin: 10px 0;
+}
+.wave-bar {
+  width: 4px;
+  border-radius: 3px;
+  background: #e5382b;
+  opacity: 0.5;
+  animation: wave 1.1s ease-in-out infinite;
+}
+.wave-bar:nth-child(1) { animation-delay: 0.0s; }
+.wave-bar:nth-child(2) { animation-delay: 0.1s; }
+.wave-bar:nth-child(3) { animation-delay: 0.2s; }
+.wave-bar:nth-child(4) { animation-delay: 0.3s; }
+.wave-bar:nth-child(5) { animation-delay: 0.4s; }
+.wave-bar:nth-child(6) { animation-delay: 0.3s; }
+.wave-bar:nth-child(7) { animation-delay: 0.2s; }
+.wave-bar:nth-child(8) { animation-delay: 0.1s; }
+.wave-bar:nth-child(9) { animation-delay: 0.0s; }
+
+@keyframes wave {
+  0%, 100% { height: 6px;  opacity: 0.3; }
+  50%       { height: 30px; opacity: 0.9; }
+}
+
+/* ── Orb animation (MentorBot card) ── */
+.orb-wrap {
+  display: flex;
+  justify-content: center;
+  margin: 10px 0;
+}
+.orb {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  border: 0.5px solid rgba(55, 138, 221, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: orbPulse 2.2s ease-in-out infinite;
+}
+.orb-inner {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: rgba(55, 138, 221, 0.12);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.orb-inner svg { animation: orbSpin 6s linear infinite; }
+
+@keyframes orbPulse {
+  0%, 100% { transform: scale(1);    border-color: rgba(55,138,221,0.3); }
+  50%       { transform: scale(1.08); border-color: rgba(55,138,221,0.6); }
+}
+@keyframes orbSpin { to { transform: rotate(360deg); } }
+
+/* ── Coming soon badge ── */
+.badge-coming {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #555;
+  border: 0.5px solid #2e2e2e;
+  border-radius: 20px;
+  padding: 3px 9px;
+  margin-bottom: 8px;
+}
+.badge-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #e5382b;
+  animation: badgeBlink 1.4s ease-in-out infinite;
+}
+@keyframes badgeBlink {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.2; }
+}
+
+/* ── Responsive ── */
+@media (max-width: 980px) {
+  .home-actions .cards-5 {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+@media (max-width: 600px) {
+  .home-actions .cards-5 {
+    grid-template-columns: 1fr;
+  }
+}

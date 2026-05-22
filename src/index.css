@@ -1,0 +1,161 @@
+@import url('https://fonts.googleapis.com/css2?family=Cabin:wght@400;600;700&family=Space+Grotesk:wght@400;600;700&display=swap');
+
+
+
+@layer base {
+  :root {
+    --background: 240 15% 6%;
+    --foreground: 210 40% 96%;
+
+    --card: 240 12% 10%;
+    --card-foreground: 210 40% 96%;
+
+    --popover: 240 12% 10%;
+    --popover-foreground: 210 40% 96%;
+
+    --primary: 270 60% 55%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 200 80% 50%;
+    --secondary-foreground: 0 0% 100%;
+
+    --muted: 240 10% 16%;
+    --muted-foreground: 215 20% 60%;
+
+    --accent: 180 70% 45%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 72% 55%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 240 10% 18%;
+    --input: 240 10% 18%;
+    --ring: 270 60% 55%;
+
+    --radius: 0.75rem;
+
+    --neon-purple: 270 80% 65%;
+    --neon-blue: 220 90% 60%;
+    --neon-cyan: 180 85% 55%;
+
+    --glass-bg: 240 15% 10%;
+    --glass-border: 240 15% 22%;
+
+    --sidebar-background: 240 15% 8%;
+    --sidebar-foreground: 210 40% 96%;
+    --sidebar-primary: 270 60% 55%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 10% 16%;
+    --sidebar-accent-foreground: 210 40% 96%;
+    --sidebar-border: 240 10% 18%;
+    --sidebar-ring: 270 60% 55%;
+  }
+}
+
+
+
+  body {
+    font-family: 'Cabin', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Space Grotesk', 'Cabin', sans-serif;
+  }
+
+
+/* Animated gradient background */
+@keyframes bg-shift {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+@keyframes neon-pulse {
+  0%, 100% { box-shadow: 0 0 5px hsl(270 80% 65% / 0.3), 0 0 20px hsl(270 80% 65% / 0.1); }
+  50% { box-shadow: 0 0 10px hsl(270 80% 65% / 0.5), 0 0 40px hsl(270 80% 65% / 0.2); }
+}
+
+@keyframes neon-spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes float-in {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes gradient-text-shift {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+/* Glass effect utility */
+.glass {
+  background: hsl(var(--glass-bg) / 0.6);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid hsl(var(--glass-border) / 0.3);
+}
+
+.glass-strong {
+  background: hsl(var(--glass-bg) / 0.8);
+  backdrop-filter: blur(30px);
+  -webkit-backdrop-filter: blur(30px);
+  border: 1px solid hsl(var(--glass-border) / 0.4);
+}
+
+/* Gradient text */
+.gradient-text {
+  background: linear-gradient(135deg, hsl(var(--neon-purple)), hsl(var(--neon-blue)), hsl(var(--neon-cyan)));
+  background-size: 200% 200%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: gradient-text-shift 4s ease infinite;
+}
+
+/* Neon glow button */
+.neon-btn {
+  position: relative;
+  background: linear-gradient(135deg, hsl(var(--neon-purple)), hsl(var(--neon-blue)));
+  transition: all 0.3s ease;
+  box-shadow: 0 0 15px hsl(var(--neon-purple) / 0.3), 0 4px 20px hsl(var(--neon-blue) / 0.2);
+}
+
+.neon-btn:hover:not(:disabled) {
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 0 25px hsl(var(--neon-purple) / 0.5), 0 8px 30px hsl(var(--neon-blue) / 0.3);
+}
+
+.neon-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Animated background */
+.animated-bg {
+  background: linear-gradient(
+    -45deg,
+    hsl(240 15% 6%),
+    hsl(260 20% 8%),
+    hsl(220 20% 8%),
+    hsl(240 15% 6%)
+  );
+  background-size: 400% 400%;
+  animation: bg-shift 15s ease infinite;
+}
+
+/* Loading spinner */
+.neon-spinner {
+  width: 24px;
+  height: 24px;
+  border: 3px solid hsl(var(--neon-cyan) / 0.2);
+  border-top-color: hsl(var(--neon-cyan));
+  border-radius: 50%;
+  animation: neon-spin 0.8s linear infinite;
+}
+
+/* Audio player styling */
+audio::-webkit-media-controls-panel {
+  background: hsl(var(--card));
+}

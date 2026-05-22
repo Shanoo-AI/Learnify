@@ -1,0 +1,208 @@
+[
+  {
+    "course_name": "",
+    "credit_hours": "3",
+    "prerequisites": "DS (CSC-201)",
+    "weekly_topics": [
+      {
+        "week": 1,
+        "topics": "Introduction; Briefing on CLO’s Role of algorithms in computing Analysis on nature of input and size of input Empirical vs Analytical Analysis PseudoCode Introduction; Briefing on CLO’s Role of algorithms in computing Analysis on nature of input and size of input Empirical vs Analytical Analysis Pse"
+      },
+      {
+        "week": 2,
+        "topics": "Sorting Algorithm analysis, Insertion Sort Loop Invariant & Correctness Bubble Sort Sorting Algorithm analysis, Insertion Sort Loop Invariant & Correctness Bubble Sort"
+      },
+      {
+        "week": 3,
+        "topics": "Asymptotic notations; Big-O: Upper Bound Big Ω: Lower Bound Assignment-1 Asymptotic notations; Big-O: Upper Bound Big Ω: Lower Bound Assignment-1"
+      },
+      {
+        "week": 4,
+        "topics": "Asymptotic notations; Big Θ: Upper and Lower Bound, little-o, little-ω, Asymptotic notations; Big Θ: Upper and Lower Bound, little-o, little-ω,"
+      },
+      {
+        "week": 5,
+        "topics": "Recursion and recurrence relations; Quiz-1 Recursion and recurrence relations; Quiz-1"
+      },
+      {
+        "week": 6,
+        "topics": "Algorithm Design Techniques, Brute Force Approach, Algorithm Design Techniques, Brute Force Approach,"
+      },
+      {
+        "week": 7,
+        "topics": "Divide-and-conquer approach; Divide-and-conquer approach;"
+      },
+      {
+        "week": 8,
+        "topics": "Merge Sort, Quick Sort, Quiz-2 Merge Sort, Quick Sort, Quiz-2 Midterm Exam Midterm Exam Midterm Exam"
+      },
+      {
+        "week": 9,
+        "topics": "Greedy approach; Greedy approach;"
+      },
+      {
+        "week": 10,
+        "topics": "Dynamic programming; Elements of Dynamic Programming, Assignment-2 Dynamic programming; Elements of Dynamic Programming, Assignment-2"
+      },
+      {
+        "week": 11,
+        "topics": "Search trees; Quiz-3 Search trees; Quiz-3"
+      },
+      {
+        "week": 12,
+        "topics": "Heaps; Hashing; Heaps; Hashing;"
+      },
+      {
+        "week": 13,
+        "topics": "Graph algorithms, Shortest paths, Sparse graphs, Graph algorithms, Shortest paths, Sparse graphs,"
+      },
+      {
+        "week": 14,
+        "topics": "String matching; String matching;"
+      },
+      {
+        "week": 15,
+        "topics": "Introduction to complexity classes. Quiz-4 Introduction to complexity classes. Quiz-4"
+      },
+      {
+        "week": 16,
+        "topics": "Course Revision and Discussion on Past Papers Course Revision and Discussion on Past Papers Final Term Exam Final Term Exam Final Term Exam Analysis of Algorithm Assignments Done in the Course: Students will be assigned a series of in-class and homework tasks to understand Analysis of Algorithms bas"
+      }
+    ]
+  },
+  {
+    "course_name": "MGT-351 Introduction to Marketing",
+    "credit_hours": "3(3-0)",
+    "prerequisites": "None",
+    "weekly_topics": [
+      {
+        "week": 1,
+        "topics": "Marketing in a changing World: Creating Customer Value and Satisfaction. What is Marketing, Marketing Management, Customer Needs, Wants, and Demands Market Offerings—Products, Services, and Experiences"
+      },
+      {
+        "week": 1,
+        "topics": "I Marketing Management Philosophies, Customer Value and Satisfaction"
+      },
+      {
+        "week": 2,
+        "topics": "Designing a Customer-Driven Marketing Strategy, Marketing Management Orientations, Preparing an Integrated Marketing Plan and Program Building Customer Relationships"
+      },
+      {
+        "week": 2,
+        "topics": "I Marketing Challenges in the New “Connected” Millennium. Capturing Value from Customers, The Changing Marketing Landscape"
+      },
+      {
+        "week": 3,
+        "topics": "Company and Marketing Strategy: Partnering to Build Customer Relationships Company-Wide Strategic Planning: Setting Company Objectives and Goals ,Designing the Business Portfolio"
+      },
+      {
+        "week": 3,
+        "topics": "I Marketing Strategy and the Marketing Mix"
+      },
+      {
+        "week": 4,
+        "topics": "Marketing Analysis, Marketing Planning, Marketing, Implementation"
+      },
+      {
+        "week": 4,
+        "topics": "I Marketing Department Organization, Marketing Control"
+      },
+      {
+        "week": 5,
+        "topics": "Analyzing the Marketing Environment The Microenvironment"
+      },
+      {
+        "week": 5,
+        "topics": "I The Macro environment ,The Demographic, Economic, Natural Environment"
+      },
+      {
+        "week": 6,
+        "topics": "Responding to the Marketing Environment"
+      },
+      {
+        "week": 6,
+        "topics": "I Consumer Markets and Consumer Buyer Behavior Model of Consumer Behavior, Characteristics Affecting Consumer Behavior"
+      },
+      {
+        "week": 7,
+        "topics": "Types of Buying Decision Behavior"
+      },
+      {
+        "week": 7,
+        "topics": "I The Buyer Decision Process"
+      },
+      {
+        "week": 8,
+        "topics": "Customer-Driven Marketing Strategy: Creating Value for Target Customers Market Segmentation, Requirements for Effective Segmentation"
+      },
+      {
+        "week": 8,
+        "topics": "I Market Targeting, Differentiation and Positioning Mid Term Exam Mid Term Exam Mid Term Exam"
+      },
+      {
+        "week": 9,
+        "topics": "Product & Services Strategy What is Product, Product Classifications, Individual Product Decisions"
+      },
+      {
+        "week": 9,
+        "topics": "I Product line decisions, Product mix –decisions."
+      },
+      {
+        "week": 10,
+        "topics": "Marketing strategies for Service Firms"
+      },
+      {
+        "week": 10,
+        "topics": "I Branding Strategy: Building Strong Brands, Brand Equity"
+      },
+      {
+        "week": 11,
+        "topics": "New-Product Development and Product Life Cycle strategies New Product development"
+      },
+      {
+        "week": 11,
+        "topics": "I Managing New-Product Development; Customer-Centered New-"
+      },
+      {
+        "week": 12,
+        "topics": "Product Development, Product life cycle strategies. Marketing Strategies at every product life cycle stage."
+      },
+      {
+        "week": 12,
+        "topics": "I New-Product Pricing Strategies Market-Skimming Pricing, Market-Penetration Pricing, Product Mix Pricing Strategies, Price Adjustment Strategies"
+      },
+      {
+        "week": 13,
+        "topics": "Marketing Channels Definition, number of channel level, conventional and vertical marketing channel Definition of wholesaler and retailer"
+      },
+      {
+        "week": 13,
+        "topics": "I Promotion IMC, promotion mix, Advertising"
+      },
+      {
+        "week": 14,
+        "topics": "Sales promotion, personal selling, Public relations, Publicity"
+      },
+      {
+        "week": 14,
+        "topics": "I Introduction to e-business Introduction, Different trends"
+      },
+      {
+        "week": 15,
+        "topics": "Rules of doing e-business, E-business application in the market"
+      },
+      {
+        "week": 15,
+        "topics": "I Digital Marketing Definition, using analytics to interpret and optimize results to maximize performance"
+      },
+      {
+        "week": 16,
+        "topics": "Project presentation"
+      },
+      {
+        "week": 16,
+        "topics": "I Project presentation Final Term Exam Final Term Exam Final Term Exam Course Learning Outcomes (CLOs) At the end of course the students will be able to: Conceptual knowledge of marketing as applicable to decision making process with a focus on tactical marketing mix decisions."
+      }
+    ]
+  }
+]

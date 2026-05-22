@@ -646,7 +646,7 @@ export default function App() {
               <p className="card-eyebrow">Library</p>
               <h3 className="card-title">Past Papers</h3>
               <p className="card-body">
-                Review previously uploaded papers from the `past_papers` table.
+                Review previously uploaded papers from MongoDB Atlas.
               </p>
 
               <div className="paper-search-wrap">

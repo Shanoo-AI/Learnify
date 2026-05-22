@@ -1,64 +1,84 @@
 import sqlite3
-import psycopg2
-from psycopg2.extras import execute_values
 import os
+from datetime import datetime
+
+from dotenv import load_dotenv
+from pymongo import MongoClient
 
 def migrate_now():
-    # Folder ka path sahi set karne k liye
-    BASE_DIR = os.path.dirname(os.path.abspath(__file__)) #[cite: 1]
-    # SQLite file ka complete path
-    DB_PATH = os.path.join(BASE_DIR, 'database', 'userdb.db') #[cite: 1]
+    load_dotenv(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '.env'))
+
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    db_path = os.path.join(base_dir, 'database', 'userdb.db')
+    mongo_uri = os.getenv('MONGO_URI')
+    mongo_db_name = os.getenv('MONGO_DB_NAME', 'learnify')
 
     sqlite_conn = None
-    pg_conn = None
 
     try:
-        if not os.path.exists(DB_PATH):
-            print(f"Error: Database file nahi mili is path par: {DB_PATH}")
+        if not os.path.exists(db_path):
+            print(f"Error: Database file nahi mili is path par: {db_path}")
+            return
+        if not mongo_uri:
+            print("Error: MONGO_URI env var set karo. Atlas connection string chahiye.")
             return
 
-        # 1. SQLite Connection
-        sqlite_conn = sqlite3.connect(DB_PATH)
+        sqlite_conn = sqlite3.connect(db_path)
+        sqlite_conn.row_factory = sqlite3.Row
         sq_cur = sqlite_conn.cursor()
 
-        # 2. Postgres Connection
-        pg_conn = psycopg2.connect(
-            dbname="Learnify", # Ensure karein k pgAdmin mein yahi name hai
-            user="postgres",
-            password="123", # <--- Quotes mein likhna zaroori hai
-            host="localhost",
-            port="5432"
-        )
-        pg_cur = pg_conn.cursor()
+        mongo_client = MongoClient(mongo_uri)
+        mongo_db = mongo_client[mongo_db_name]
+        users_col = mongo_db['users']
+        past_papers_col = mongo_db['past_papers']
 
-        # --- Migrate 'data' table ---
-        sq_cur.execute("SELECT name, password FROM data")
-        users = sq_cur.fetchall()
-        if users:
-            # PostgreSQL placeholders %s use karta hai[cite: 1]
-            execute_values(pg_cur, "INSERT INTO data (name, password) VALUES %s ON CONFLICT (name) DO NOTHING", users)
-            print(f"Migrated {len(users)} users.")
+        users_col.create_index('name', unique=True)
+        users_col.create_index('email', unique=True, sparse=True)
+        past_papers_col.create_index('id')
 
-        # --- Migrate 'past_papers' table ---
+        sq_cur.execute('SELECT name, password FROM Data')
+        users = [dict(row) for row in sq_cur.fetchall()]
+        for user in users:
+            user_doc = {
+                'name': user['name'],
+                'password': user['password'],
+                'is_verified': True,
+                'provider': 'password',
+                'created_at': datetime.utcnow(),
+            }
+            if user.get('email'):
+                user_doc['email'] = user['email']
+
+            users_col.update_one(
+                {'name': user['name']},
+                {'$setOnInsert': user_doc},
+                upsert=True,
+            )
+        print(f"Migrated {len(users)} users.")
+
         sq_cur.execute("SELECT subject, course_code, year, semester, paper_type, file_name, file_path FROM past_papers")
-        papers = sq_cur.fetchall()
-        if papers:
-            execute_values(pg_cur, """
-                INSERT INTO past_papers (subject, course_code, year, semester, paper_type, file_name, file_path) 
-                VALUES %s ON CONFLICT DO NOTHING
-            """, papers)
-            print(f"Migrated {len(papers)} past papers.")
-
-        pg_conn.commit()
-        print("Migration Successful, Jani!")
+        papers = [dict(row) for row in sq_cur.fetchall()]
+        for index, paper in enumerate(papers, start=1):
+            paper.setdefault('uploaded_at', datetime.utcnow())
+            past_papers_col.update_one(
+                {
+                    'subject': paper.get('subject'),
+                    'course_code': paper.get('course_code'),
+                    'year': paper.get('year'),
+                    'paper_type': paper.get('paper_type'),
+                    'file_name': paper.get('file_name'),
+                },
+                {'$setOnInsert': {**paper, 'id': index}},
+                upsert=True,
+            )
+        print(f"Migrated {len(papers)} past papers.")
+        print("MongoDB Atlas migration successful, jani!")
 
     except Exception as e:
         print(f"Error occurred: {e}")
     finally:
         if sqlite_conn:
             sqlite_conn.close()
-        if pg_conn:
-            pg_conn.close()
 
 if __name__ == "__main__":
     migrate_now()

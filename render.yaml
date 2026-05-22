@@ -11,6 +11,8 @@ services:
         value: true
       - key: SESSION_COOKIE_SAMESITE
         value: None
+      - key: MONGO_DB_NAME
+        value: learnify
 
   - type: web
     name: learnify-web

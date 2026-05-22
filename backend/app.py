@@ -8,11 +8,10 @@ from email.message import EmailMessage
 from hashlib import sha256
 from pathlib import Path
 
-import psycopg2
-from psycopg2.extras import RealDictCursor
 from flask import Flask, jsonify, redirect, request, send_from_directory, session, url_for
 from flask_cors import CORS
 from flask_dance.contrib.google import google, make_google_blueprint
+from pymongo import DESCENDING, MongoClient
 from werkzeug.middleware.dispatcher import DispatcherMiddleware
 from werkzeug.utils import secure_filename
 
@@ -65,22 +64,32 @@ app.config['MAX_CONTENT_LENGTH'] = MAX_FILE_SIZE
 
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
-def _get_pg_conn():
-    """
-    Centralized Postgres connection for modules that previously used SQLite.
-    Uses env overrides when present; defaults match existing local setup.
-    """
-    database_url = os.getenv('DATABASE_URL')
-    if database_url:
-        return psycopg2.connect(database_url)
+mongo_client = MongoClient(os.getenv('MONGO_URI', 'mongodb://localhost:27017'), serverSelectionTimeoutMS=5000)
+mongo_db = mongo_client[os.getenv('MONGO_DB_NAME', 'learnify')]
+users_col = mongo_db['users']
+pending_otps_col = mongo_db['pending_user_otps']
+past_papers_col = mongo_db['past_papers']
 
-    return psycopg2.connect(
-        dbname=os.getenv('PGDATABASE', os.getenv('DB_NAME', 'Learnify')),
-        user=os.getenv('PGUSER', os.getenv('DB_USER', 'postgres')),
-        password=os.getenv('PGPASSWORD', os.getenv('DB_PASSWORD', '123')),
-        host=os.getenv('PGHOST', os.getenv('DB_HOST', 'localhost')),
-        port=os.getenv('PGPORT', os.getenv('DB_PORT', '5432')),
-    )
+
+def _init_mongo_indexes() -> None:
+    try:
+        users_col.create_index('name', unique=True)
+        users_col.create_index('email', unique=True, sparse=True)
+        pending_otps_col.create_index('email', unique=True)
+        pending_otps_col.create_index('expires_at', expireAfterSeconds=0)
+        past_papers_col.create_index([('uploaded_at', DESCENDING)])
+    except Exception as exc:
+        print(f'Mongo index setup skipped: {exc}')
+
+
+_init_mongo_indexes()
+
+
+def _json_record(record: dict) -> dict:
+    clean = dict(record)
+    if '_id' in clean:
+        clean['_id'] = str(clean['_id'])
+    return clean
 
 def _mount_mentorbot(main_app: Flask) -> None:
     mentorbot_app_path = os.path.join(
@@ -291,20 +300,16 @@ def google_login():
     email = user_info['email']
     name = user_info['name']
 
-    con = _get_pg_conn()
-    try:
-        cursor = con.cursor()
-        cursor.execute('SELECT 1 FROM data WHERE name=%s OR email=%s', (name, email))
-        user = cursor.fetchone()
-
-        if user is None:
-            cursor.execute(
-                'INSERT INTO data (name, email, password, is_verified) VALUES (%s, %s, %s, TRUE)',
-                (name, email, email),
-            )
-            con.commit()
-    finally:
-        con.close()
+    user = users_col.find_one({'$or': [{'name': name}, {'email': email}]})
+    if user is None:
+        users_col.insert_one({
+            'name': name,
+            'email': email,
+            'password': email,
+            'is_verified': True,
+            'provider': 'google',
+            'created_at': datetime.utcnow(),
+        })
 
     session['user'] = name
     session['logged_in'] = True
@@ -332,42 +337,33 @@ def register():
     if '@' not in email or '.' not in email.rsplit('@', 1)[-1]:
         return jsonify({'success': False, 'reply': 'Enter a valid email address'})
 
-    con = _get_pg_conn()
+    existing_user = users_col.find_one({'$or': [{'name': name}, {'email': email}]})
+    if existing_user:
+        return jsonify({'success': False, 'reply': 'Username or email already exists'})
+
+    otp = _generate_otp()
+    expires_at = datetime.utcnow() + timedelta(minutes=OTP_EXPIRY_MINUTES)
+    pending_otps_col.update_one(
+        {'email': email},
+        {
+            '$set': {
+                'name': name,
+                'email': email,
+                'password': password,
+                'otp_hash': _hash_otp(email, otp),
+                'expires_at': expires_at,
+                'attempts': 0,
+                'created_at': datetime.utcnow(),
+            }
+        },
+        upsert=True,
+    )
+
     try:
-        cursor = con.cursor()
-        cursor.execute('SELECT 1 FROM data WHERE name=%s OR email=%s', (name, email))
-        existing_user = cursor.fetchone()
-
-        if existing_user:
-            return jsonify({'success': False, 'reply': 'Username or email already exists'})
-
-        otp = _generate_otp()
-        expires_at = datetime.now() + timedelta(minutes=OTP_EXPIRY_MINUTES)
-
-        cursor.execute(
-            """
-            INSERT INTO pending_user_otps (name, email, password, otp_hash, expires_at, attempts, created_at)
-            VALUES (%s, %s, %s, %s, %s, 0, NOW())
-            ON CONFLICT (email)
-            DO UPDATE SET
-                name = EXCLUDED.name,
-                password = EXCLUDED.password,
-                otp_hash = EXCLUDED.otp_hash,
-                expires_at = EXCLUDED.expires_at,
-                attempts = 0,
-                created_at = NOW()
-            """,
-            (name, email, password, _hash_otp(email, otp), expires_at),
-        )
-        con.commit()
-
-        try:
-            _send_registration_otp(email, otp, name)
-        except Exception as exc:
-            print(f"OTP email error: {exc}")
-            return jsonify({'success': False, 'reply': str(exc)}), 500
-    finally:
-        con.close()
+        _send_registration_otp(email, otp, name)
+    except Exception as exc:
+        print(f"OTP email error: {exc}")
+        return jsonify({'success': False, 'reply': str(exc)}), 500
 
     return jsonify({
         'success': True,
@@ -385,58 +381,38 @@ def verify_registration():
     if not email or not otp:
         return jsonify({'success': False, 'reply': 'Email and OTP required'}), 400
 
-    con = _get_pg_conn()
-    try:
-        cursor = con.cursor(cursor_factory=RealDictCursor)
-        cursor.execute(
-            """
-            SELECT id, name, email, password, otp_hash, expires_at, attempts
-            FROM pending_user_otps
-            WHERE email=%s
-            """,
-            (email,),
-        )
-        pending = cursor.fetchone()
+    pending = pending_otps_col.find_one({'email': email})
+    if not pending:
+        return jsonify({'success': False, 'reply': 'No pending registration found'}), 404
 
-        if not pending:
-            return jsonify({'success': False, 'reply': 'No pending registration found'}), 404
+    if pending['expires_at'] < datetime.utcnow():
+        pending_otps_col.delete_one({'email': email})
+        return jsonify({'success': False, 'reply': 'OTP expired. Please register again.'}), 400
 
-        if pending['expires_at'] < datetime.now(pending['expires_at'].tzinfo):
-            cursor.execute('DELETE FROM pending_user_otps WHERE email=%s', (email,))
-            con.commit()
-            return jsonify({'success': False, 'reply': 'OTP expired. Please register again.'}), 400
+    if pending.get('attempts', 0) >= 5:
+        pending_otps_col.delete_one({'email': email})
+        return jsonify({'success': False, 'reply': 'Too many wrong attempts. Please register again.'}), 400
 
-        if pending['attempts'] >= 5:
-            cursor.execute('DELETE FROM pending_user_otps WHERE email=%s', (email,))
-            con.commit()
-            return jsonify({'success': False, 'reply': 'Too many wrong attempts. Please register again.'}), 400
+    if pending['otp_hash'] != _hash_otp(email, otp):
+        pending_otps_col.update_one({'email': email}, {'$inc': {'attempts': 1}})
+        return jsonify({'success': False, 'reply': 'Invalid OTP'}), 400
 
-        if pending['otp_hash'] != _hash_otp(email, otp):
-            cursor.execute(
-                'UPDATE pending_user_otps SET attempts = attempts + 1 WHERE email=%s',
-                (email,),
-            )
-            con.commit()
-            return jsonify({'success': False, 'reply': 'Invalid OTP'}), 400
+    existing_user = users_col.find_one({
+        '$or': [{'name': pending['name']}, {'email': pending['email']}]
+    })
+    if existing_user:
+        pending_otps_col.delete_one({'email': email})
+        return jsonify({'success': False, 'reply': 'Username or email already exists'}), 409
 
-        cursor.execute(
-            'SELECT 1 FROM data WHERE name=%s OR email=%s',
-            (pending['name'], pending['email']),
-        )
-        existing_user = cursor.fetchone()
-        if existing_user:
-            cursor.execute('DELETE FROM pending_user_otps WHERE email=%s', (email,))
-            con.commit()
-            return jsonify({'success': False, 'reply': 'Username or email already exists'}), 409
-
-        cursor.execute(
-            'INSERT INTO data (name, email, password, is_verified) VALUES (%s, %s, %s, TRUE)',
-            (pending['name'], pending['email'], pending['password']),
-        )
-        cursor.execute('DELETE FROM pending_user_otps WHERE email=%s', (email,))
-        con.commit()
-    finally:
-        con.close()
+    users_col.insert_one({
+        'name': pending['name'],
+        'email': pending['email'],
+        'password': pending['password'],
+        'is_verified': True,
+        'provider': 'password',
+        'created_at': datetime.utcnow(),
+    })
+    pending_otps_col.delete_one({'email': email})
 
     return jsonify({'success': True, 'reply': 'Email verified. Account created successfully.'})
 
@@ -450,13 +426,7 @@ def login():
     if not name or not password:
         return jsonify({'success': False, 'reply': 'Name and password required'})
 
-    con = _get_pg_conn()
-    try:
-        cursor = con.cursor()
-        cursor.execute('SELECT 1 FROM data WHERE name=%s AND password=%s', (name, password))
-        user = cursor.fetchone()
-    finally:
-        con.close()
+    user = users_col.find_one({'name': name, 'password': password})
 
     if user:
         session['user'] = name
@@ -526,17 +496,11 @@ def get_past_papers():
         return jsonify({'success': False, 'reply': 'Please login first'}), 401
 
     try:
-        con = _get_pg_conn()
-        try:
-            cursor = con.cursor(cursor_factory=RealDictCursor)
-            cursor.execute('SELECT * FROM past_papers ORDER BY id DESC')
-            rows = cursor.fetchall()
-        finally:
-            con.close()
+        rows = list(past_papers_col.find({}).sort([('uploaded_at', DESCENDING), ('id', DESCENDING)]))
 
         papers = []
         for row in rows:
-            record = dict(row)
+            record = _json_record(row)
             record['file_url'] = _resolve_paper_file_url(record)
             papers.append(record)
 

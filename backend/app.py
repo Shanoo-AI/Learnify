@@ -70,6 +70,10 @@ def _get_pg_conn():
     Centralized Postgres connection for modules that previously used SQLite.
     Uses env overrides when present; defaults match existing local setup.
     """
+    database_url = os.getenv('DATABASE_URL')
+    if database_url:
+        return psycopg2.connect(database_url)
+
     return psycopg2.connect(
         dbname=os.getenv('PGDATABASE', os.getenv('DB_NAME', 'Learnify')),
         user=os.getenv('PGUSER', os.getenv('DB_USER', 'postgres')),

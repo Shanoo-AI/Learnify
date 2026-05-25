@@ -3,6 +3,7 @@ import os
 import re
 import shutil
 import tempfile
+import traceback
 from pathlib import Path
 
 import edge_tts
@@ -26,6 +27,7 @@ ALLOWED_EXTENSIONS = {".ppt", ".pptx", ".pdf"}
 OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions"
 DEFAULT_MODEL = "deepseek/deepseek-v3.2"
 MAX_EXTRACTED_CHARS = 16000
+MAX_TTS_CHARS = 4500
 OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
 
 
@@ -86,11 +88,18 @@ def register_audio_routes(app):
             return send_file(output_path, as_attachment=False, mimetype="audio/mpeg")
 
         except AudioGenerationError as exc:
+            print(f"Audio generation error: {exc}")
             return jsonify({"success": False, "error": str(exc)}), 502
-        except requests.RequestException:
-            return jsonify({"success": False, "error": "LLM API request failed"}), 502
-        except Exception:
-            return jsonify({"success": False, "error": "Failed to process uploaded file"}), 500
+        except requests.RequestException as exc:
+            details = ""
+            if getattr(exc, "response", None) is not None:
+                details = f": {exc.response.status_code} {exc.response.text[:300]}"
+            print(f"LLM API request failed{details}")
+            return jsonify({"success": False, "error": f"LLM API request failed{details}"}), 502
+        except Exception as exc:
+            print(f"Audio upload processing failed: {exc}")
+            traceback.print_exc()
+            return jsonify({"success": False, "error": f"Failed to process uploaded file: {exc}"}), 500
 
 
 def extract_text_by_type(file_path, extension):
@@ -201,6 +210,7 @@ def generate_explanation_with_llm(extracted_text, language):
         "model": model,
         "messages": [{"role": "user", "content": build_prompt(extracted_text, language)}],
         "temperature": 0.5,
+        "max_tokens": 1200,
     }
 
     response = requests.post(OPENROUTER_URL, headers=headers, json=payload, timeout=90)
@@ -228,4 +238,9 @@ async def text_to_audio_edge(text, output_file, voice):
 
 
 def text_to_audio(text, output_file, voice):
-    asyncio.run(text_to_audio_edge(text, output_file, voice))
+    if len(text) > MAX_TTS_CHARS:
+        text = text[:MAX_TTS_CHARS].rsplit(".", 1)[0] + "."
+    try:
+        asyncio.run(text_to_audio_edge(text, output_file, voice))
+    except Exception as exc:
+        raise AudioGenerationError(f"TTS generation failed: {exc}") from exc

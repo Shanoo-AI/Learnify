@@ -69,7 +69,7 @@ app.config['MAX_CONTENT_LENGTH'] = MAX_FILE_SIZE
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 mongo_client = MongoClient(os.getenv('MONGO_URI', 'mongodb://localhost:27017'), serverSelectionTimeoutMS=5000)
-mongo_db = mongo_client[os.getenv('MONGO_DB_NAME', 'learnify')]
+mongo_db = mongo_client[os.getenv('MONGO_DB_NAME', 'Learnify')]
 users_col = mongo_db['users']
 pending_otps_col = mongo_db['pending_user_otps']
 past_papers_col = mongo_db['past_papers']

@@ -12,7 +12,7 @@ services:
       - key: SESSION_COOKIE_SAMESITE
         value: None
       - key: MONGO_DB_NAME
-        value: learnify
+        value: Learnify
 
   - type: web
     name: learnify-web

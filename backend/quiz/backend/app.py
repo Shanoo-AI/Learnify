@@ -31,7 +31,7 @@ MONGO_URI = os.getenv("MONGO_URI", "mongodb://localhost:27017")
 
 groq_client = None
 mongo_client = MongoClient(MONGO_URI, serverSelectionTimeoutMS=5000)
-db = mongo_client["learnify"]
+db = mongo_client[os.getenv("MONGO_DB_NAME", "Learnify")]
 subjects_col = db["subjects"]
 results_col = db["results"]
 

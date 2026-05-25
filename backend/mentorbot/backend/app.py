@@ -55,7 +55,7 @@ def load_bearer_session():
 # ========== DATABASE SETUP ==========
 # MongoDB
 mongo_client = MongoClient(os.getenv("MONGO_URI", "mongodb://localhost:27017/"))
-db = mongo_client["learnify"]
+db = mongo_client[os.getenv("MONGO_DB_NAME", "Learnify")]
 chats_collection = db["chats"]
 sessions_collection = db["sessions"]
 

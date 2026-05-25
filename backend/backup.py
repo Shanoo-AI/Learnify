@@ -11,7 +11,7 @@ def migrate_now():
     base_dir = os.path.dirname(os.path.abspath(__file__))
     db_path = os.path.join(base_dir, 'database', 'userdb.db')
     mongo_uri = os.getenv('MONGO_URI')
-    mongo_db_name = os.getenv('MONGO_DB_NAME', 'learnify')
+    mongo_db_name = os.getenv('MONGO_DB_NAME', 'Learnify')
 
     sqlite_conn = None
 

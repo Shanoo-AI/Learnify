@@ -13,7 +13,7 @@ dashboard_bp = Blueprint("dashboard", __name__)
 
 MONGO_URI = os.getenv("MONGO_URI", "mongodb://localhost:27017")
 mongo_client = MongoClient(MONGO_URI, serverSelectionTimeoutMS=5000)
-db = mongo_client["learnify"]
+db = mongo_client[os.getenv("MONGO_DB_NAME", "Learnify")]
 results_col = db["results"]
 
 # ─────────────────────────────────────────────

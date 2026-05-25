@@ -9,16 +9,19 @@ from pathlib import Path
 import edge_tts
 import requests
 from flask import after_this_request, jsonify, request, send_file, session
+from gtts import gTTS
 from pptx import Presentation
 from werkzeug.utils import secure_filename
 
 LANGUAGE_CONFIG = {
     "en": {
         "voice": "en-US-BrianMultilingualNeural",
+        "gtts_lang": "en",
         "instruction": "Explain in simple spoken English.",
     },
     "ur": {
         "voice": "ur-PK-UzmaNeural",
+        "gtts_lang": "ur",
         "instruction": "Explain in simple spoken Urdu. Respond only in Urdu and do not use English.",
     },
 }
@@ -84,7 +87,12 @@ def register_audio_routes(app):
             if not cleaned_explanation:
                 return jsonify({"success": False, "error": "Generated explanation is empty"}), 502
 
-            text_to_audio(cleaned_explanation, output_path, LANGUAGE_CONFIG[language]["voice"])
+            text_to_audio(
+                cleaned_explanation,
+                output_path,
+                LANGUAGE_CONFIG[language]["voice"],
+                LANGUAGE_CONFIG[language]["gtts_lang"],
+            )
             return send_file(output_path, as_attachment=False, mimetype="audio/mpeg")
 
         except AudioGenerationError as exc:
@@ -237,10 +245,21 @@ async def text_to_audio_edge(text, output_file, voice):
     await communicator.save(output_file)
 
 
-def text_to_audio(text, output_file, voice):
+def text_to_audio_with_gtts(text, output_file, lang):
+    tts = gTTS(text=text, lang=lang, slow=False)
+    tts.save(output_file)
+
+
+def text_to_audio(text, output_file, voice, fallback_lang):
     if len(text) > MAX_TTS_CHARS:
         text = text[:MAX_TTS_CHARS].rsplit(".", 1)[0] + "."
     try:
         asyncio.run(text_to_audio_edge(text, output_file, voice))
     except Exception as exc:
-        raise AudioGenerationError(f"TTS generation failed: {exc}") from exc
+        print(f"Edge TTS failed, falling back to gTTS: {exc}")
+        try:
+            text_to_audio_with_gtts(text, output_file, fallback_lang)
+        except Exception as fallback_exc:
+            raise AudioGenerationError(
+                f"TTS generation failed. Edge TTS: {exc}. gTTS fallback: {fallback_exc}"
+            ) from fallback_exc

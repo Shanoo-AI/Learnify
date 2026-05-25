@@ -7,12 +7,14 @@ from datetime import datetime, timedelta
 from email.message import EmailMessage
 from hashlib import sha256
 from pathlib import Path
+from urllib.parse import quote
 
 import requests
 from flask import Flask, jsonify, redirect, request, send_from_directory, session, url_for
 from flask_cors import CORS
 from flask_dance.contrib.google import google, make_google_blueprint
 from pymongo import DESCENDING, MongoClient
+from itsdangerous import BadSignature, SignatureExpired, URLSafeTimedSerializer
 from werkzeug.middleware.dispatcher import DispatcherMiddleware
 from werkzeug.utils import secure_filename
 
@@ -51,6 +53,7 @@ app.config.update(
     SESSION_COOKIE_SECURE=os.getenv('SESSION_COOKIE_SECURE', 'false').lower() == 'true',
     SESSION_COOKIE_SAMESITE=os.getenv('SESSION_COOKIE_SAMESITE', 'Lax'),
 )
+auth_serializer = URLSafeTimedSerializer(app.secret_key, salt='learnify-auth')
 
 UPLOAD_FOLDER = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'uploads')
 ALLOWED_EXTENSIONS = {
@@ -91,6 +94,33 @@ def _json_record(record: dict) -> dict:
     if '_id' in clean:
         clean['_id'] = str(clean['_id'])
     return clean
+
+
+def _make_auth_token(user: str) -> str:
+    return auth_serializer.dumps({'user': user})
+
+
+def _load_auth_token(token: str) -> str | None:
+    try:
+        data = auth_serializer.loads(token, max_age=60 * 60 * 24 * 30)
+        return data.get('user')
+    except (BadSignature, SignatureExpired):
+        return None
+
+
+@app.before_request
+def load_bearer_session():
+    if session.get('logged_in'):
+        return
+
+    auth_header = request.headers.get('Authorization', '')
+    if not auth_header.startswith('Bearer '):
+        return
+
+    user = _load_auth_token(auth_header.removeprefix('Bearer ').strip())
+    if user:
+        session['user'] = user
+        session['logged_in'] = True
 
 def _mount_mentorbot(main_app: Flask) -> None:
     mentorbot_app_path = os.path.join(
@@ -340,7 +370,11 @@ def google_login():
 
     session['user'] = name
     session['logged_in'] = True
-    return redirect(os.getenv('FRONTEND_URL', 'http://localhost:3000'))
+    frontend_url = os.getenv('FRONTEND_URL', 'http://localhost:3000')
+    separator = '&' if '?' in frontend_url else '?'
+    return redirect(
+        f"{frontend_url}{separator}auth_token={quote(_make_auth_token(name))}&user={quote(name)}"
+    )
 
 
 @app.route('/logout', methods=['GET'])
@@ -458,7 +492,12 @@ def login():
     if user:
         session['user'] = name
         session['logged_in'] = True
-        return jsonify({'success': True, 'reply': 'Login successful', 'user': name})
+        return jsonify({
+            'success': True,
+            'reply': 'Login successful',
+            'user': name,
+            'auth_token': _make_auth_token(name),
+        })
 
     return jsonify({'success': False, 'reply': 'Invalid username or password'})
 

@@ -12,7 +12,7 @@ from pymongo import MongoClient
 load_dotenv()
 
 client = MongoClient(os.getenv("MONGO_URI", "mongodb://localhost:27017"))
-db = client["learnify"]
+db = client[os.getenv("MONGO_DB_NAME", "learnify")]
 col = db["subjects"]
 
 col.drop()  # clean slate on re-seed

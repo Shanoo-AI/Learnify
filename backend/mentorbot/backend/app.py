@@ -11,11 +11,13 @@ import requests
 from pymongo import MongoClient
 from flask import Flask, request, jsonify, session
 from flask_cors import CORS
+from itsdangerous import BadSignature, SignatureExpired, URLSafeTimedSerializer
 from werkzeug.utils import secure_filename
 
 # ========== FLASK SETUP ==========
 app = Flask(__name__)
 app.secret_key = os.getenv("SECRET_KEY", "dev-secret-key-change-me")
+auth_serializer = URLSafeTimedSerializer(app.secret_key, salt="learnify-auth")
 _cors_origins = [
     origin.strip()
     for origin in os.getenv("CORS_ORIGINS", os.getenv("FRONTEND_URL", "")).split(",")
@@ -26,6 +28,29 @@ CORS(
     supports_credentials=True,
     origins=_cors_origins or [r"http://localhost(:\d+)?", r"http://127\.0\.0\.1(:\d+)?"],
 )
+
+
+def load_auth_token(token):
+    try:
+        data = auth_serializer.loads(token, max_age=60 * 60 * 24 * 30)
+        return data.get("user")
+    except (BadSignature, SignatureExpired):
+        return None
+
+
+@app.before_request
+def load_bearer_session():
+    if session.get("logged_in"):
+        return
+
+    auth_header = request.headers.get("Authorization", "")
+    if not auth_header.startswith("Bearer "):
+        return
+
+    user = load_auth_token(auth_header.removeprefix("Bearer ").strip())
+    if user:
+        session["user"] = user
+        session["logged_in"] = True
 
 # ========== DATABASE SETUP ==========
 # MongoDB

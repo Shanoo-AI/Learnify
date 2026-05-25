@@ -7,6 +7,32 @@ import QuizModule from "./components/QuizModule";
 import { OverviewPage, UserAnalyticsPage } from "./components/dashboard/App";
 
 const API_BASE = process.env.REACT_APP_API_BASE || "http://localhost:5000";
+const AUTH_TOKEN_KEY = "learnify_auth_token";
+
+const getAuthHeaders = () => {
+  const token = localStorage.getItem(AUTH_TOKEN_KEY);
+  return token ? { Authorization: `Bearer ${token}` } : {};
+};
+
+const installAuthFetch = () => {
+  if (window.__learnifyAuthFetchInstalled) return;
+
+  const originalFetch = window.fetch.bind(window);
+  window.fetch = (input, init = {}) => {
+    const url = typeof input === "string" ? input : input?.url;
+    if (!url || !url.startsWith(API_BASE)) return originalFetch(input, init);
+
+    const headers = new Headers(init.headers || {});
+    const token = localStorage.getItem(AUTH_TOKEN_KEY);
+    if (token && !headers.has("Authorization")) {
+      headers.set("Authorization", `Bearer ${token}`);
+    }
+
+    return originalFetch(input, { ...init, headers });
+  };
+
+  window.__learnifyAuthFetchInstalled = true;
+};
 
 const NAV_ITEMS = [
   { id: "home", label: "Home" },
@@ -20,6 +46,8 @@ const NAV_ITEMS = [
 ];
 
 export default function App() {
+  installAuthFetch();
+
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [activePage, setActivePage] = useState("home");
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -43,7 +71,21 @@ export default function App() {
   const fileRef = useRef(null);
 
   useEffect(() => {
-    fetch(`${API_BASE}/check-session`, { credentials: "include" })
+    const params = new URLSearchParams(window.location.search);
+    const authToken = params.get("auth_token");
+    const googleUser = params.get("user");
+
+    if (authToken) {
+      localStorage.setItem(AUTH_TOKEN_KEY, authToken);
+      setIsLoggedIn(true);
+      setUserName(googleUser || "");
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+
+    fetch(`${API_BASE}/check-session`, {
+      credentials: "include",
+      headers: getAuthHeaders(),
+    })
       .then((r) => r.json())
       .then((d) => {
         if (d.logged_in) {
@@ -72,6 +114,7 @@ export default function App() {
       .then((d) => {
         setAuthMsg({ text: d.reply, ok: !!d.success });
         if (d.success) {
+          if (d.auth_token) localStorage.setItem(AUTH_TOKEN_KEY, d.auth_token);
           setIsLoggedIn(true);
           setUserName(d.user || formData.name);
         }
@@ -108,7 +151,11 @@ export default function App() {
       });
 
   const handleLogout = async () => {
-    await fetch(`${API_BASE}/logout`, { credentials: "include" });
+    await fetch(`${API_BASE}/logout`, {
+      credentials: "include",
+      headers: getAuthHeaders(),
+    });
+    localStorage.removeItem(AUTH_TOKEN_KEY);
     setIsLoggedIn(false);
     setUserName("");
     setFormData({ name: "", email: "", password: "", otp: "" });
@@ -151,6 +198,7 @@ export default function App() {
     try {
       const res = await fetch(`${API_BASE}/api/past-papers`, {
         credentials: "include",
+        headers: getAuthHeaders(),
       });
       const data = await res.json();
 
@@ -189,6 +237,7 @@ export default function App() {
         method: "POST",
         body: form,
         credentials: "include",
+        headers: getAuthHeaders(),
       });
 
       if (!res.ok) {

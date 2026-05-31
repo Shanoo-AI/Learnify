@@ -62,6 +62,7 @@ ALLOWED_EXTENSIONS = {
 }
 MAX_FILE_SIZE = 16 * 1024 * 1024  # 16MB
 OTP_EXPIRY_MINUTES = 10
+OTP_DEMO_MODE = os.getenv('OTP_DEMO_MODE', 'false').lower() == 'true'
 
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.config['MAX_CONTENT_LENGTH'] = MAX_FILE_SIZE
@@ -256,6 +257,37 @@ def _hash_otp(email: str, otp: str) -> str:
 
 
 def _send_registration_otp(email: str, otp: str, name: str) -> None:
+    brevo_api_key = os.getenv('BREVO_API_KEY')
+    if brevo_api_key:
+        sender_email = os.getenv('BREVO_SENDER_EMAIL')
+        sender_name = os.getenv('BREVO_SENDER_NAME', 'Learnify')
+        if not sender_email:
+            raise RuntimeError('BREVO_SENDER_EMAIL is not configured')
+
+        response = requests.post(
+            'https://api.brevo.com/v3/smtp/email',
+            headers={
+                'api-key': brevo_api_key,
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+            },
+            json={
+                'sender': {'name': sender_name, 'email': sender_email},
+                'to': [{'email': email, 'name': name}],
+                'subject': 'Your Learnify verification code',
+                'textContent': (
+                    f"Hi {name},\n\n"
+                    f"Your Learnify verification code is: {otp}\n\n"
+                    f"This code expires in {OTP_EXPIRY_MINUTES} minutes.\n"
+                    "If you did not request this, you can ignore this email.\n"
+                ),
+            },
+            timeout=20,
+        )
+        if not response.ok:
+            raise RuntimeError(f"Email OTP failed: {response.text}")
+        return
+
     resend_api_key = os.getenv('RESEND_API_KEY')
     if resend_api_key:
         smtp_from = os.getenv('SMTP_FROM', 'Learnify <onboarding@resend.dev>')
@@ -420,17 +452,25 @@ def register():
         upsert=True,
     )
 
-    try:
-        _send_registration_otp(email, otp, name)
-    except Exception as exc:
-        print(f"OTP email error: {exc}")
-        return jsonify({'success': False, 'reply': str(exc)}), 500
+    if OTP_DEMO_MODE:
+        print(f"Demo OTP for {email}: {otp}")
+    else:
+        try:
+            _send_registration_otp(email, otp, name)
+        except Exception as exc:
+            print(f"OTP email error: {exc}")
+            return jsonify({'success': False, 'reply': str(exc)}), 500
 
-    return jsonify({
+    response = {
         'success': True,
         'requires_otp': True,
         'reply': f'OTP sent to {email}. Enter it to finish registration.',
-    })
+    }
+    if OTP_DEMO_MODE:
+        response['reply'] = f'Demo OTP for {email}: {otp}'
+        response['demo_otp'] = otp
+
+    return jsonify(response)
 
 
 @app.route('/verify-registration', methods=['POST'])
